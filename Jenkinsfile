@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    nodejs 'Node24'   // 👈 le nom exact défini dans Jenkins Tools
+    nodejs 'Node24'   
   }
 
   environment {
