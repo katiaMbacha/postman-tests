@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    nodejs 'Node24'   // 👈 correspond exactement au nom configuré dans Jenkins
+    nodejs 'Node24'   // 👈 le nom exact défini dans Jenkins Tools
   }
 
   environment {
@@ -36,49 +36,55 @@ pipeline {
 
     stage('Run Exo1') {
       steps {
-        sh '''
-          echo "🚀 Exécution de Exo1"
-          newman run "$EXO1" -r cli,htmlextra,junit \
-            --reporter-htmlextra-export "$REPORT_DIR/Exo1.html" \
-            --reporter-junit-export     "$REPORT_DIR/Exo1.xml"
-        '''
+        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+          sh '''
+            echo "🚀 Exécution de Exo1"
+            newman run "$EXO1" -r cli,htmlextra,junit \
+              --reporter-htmlextra-export "$REPORT_DIR/Exo1.html" \
+              --reporter-junit-export     "$REPORT_DIR/Exo1.xml"
+          '''
+        }
       }
     }
 
     stage('Run Exo2') {
       steps {
-        sh '''
-          echo "🚀 Exécution de Exo2"
-          newman run "$EXO2" -r cli,htmlextra,junit \
-            --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \
-            --reporter-junit-export     "$REPORT_DIR/Exo2.xml"
-        '''
-      }
-    }
-
-    stage('Publish reports') {
-      steps {
-        archiveArtifacts artifacts: 'newman/**', fingerprint: true
-
-        publishHTML(target: [
-          reportDir: 'newman',
-          reportFiles: 'Exo1.html,Exo2.html',
-          reportName: 'Newman HTML Reports',
-          keepAll: true,
-          alwaysLinkToLastBuild: true
-        ])
-
-        junit testResults: 'newman/*.xml'
+        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+          sh '''
+            echo "🚀 Exécution de Exo2"
+            newman run "$EXO2" -r cli,htmlextra,junit \
+              --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \
+              --reporter-junit-export     "$REPORT_DIR/Exo2.xml"
+          '''
+        }
       }
     }
   }
 
   post {
     always {
-      echo '✅ Build terminé.'
+      echo '📊 Publication des rapports...'
+      archiveArtifacts artifacts: 'newman/**', fingerprint: true
+
+      publishHTML(target: [
+        reportDir: 'newman',
+        reportFiles: 'Exo1.html,Exo2.html',
+        reportName: 'Newman HTML Reports',
+        keepAll: true,
+        alwaysLinkToLastBuild: true
+      ])
+
+      junit testResults: 'newman/*.xml', allowEmptyResults: true
     }
-    unsuccessful {
-      echo '❌ Des tests ont échoué — consulte les rapports HTML/JUnit.'
+    success {
+      echo '✅ Tous les tests sont passés avec succès.'
+    }
+    unstable {
+      echo '⚠️ Certains tests ont échoué — consulte les rapports.'
+    }
+    failure {
+      echo '❌ Échec critique du pipeline.'
     }
   }
 }
+
