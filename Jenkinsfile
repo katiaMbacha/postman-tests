@@ -52,13 +52,14 @@ pipeline {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
           sh '''
             echo "🚀 Exécution de Exo2"
-            newman run "$EXO2" -r cli,htmlextra,junit \
+            newman run "$EXO2" -d data/myClients.json -r cli,htmlextra,junit \
               --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \
               --reporter-junit-export     "$REPORT_DIR/Exo2.xml"
           '''
         }
       }
     }
+
   }
 
   post {
