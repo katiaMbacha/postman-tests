@@ -1,0 +1,32 @@
+[
+  {
+    "lastname": "Bacha",
+    "firstname": "Katia",
+    "address": {
+      "numStreet": 12,
+      "streetName": "Rue de la Paix",
+      "postalCode": "75002",
+      "city": "Paris"
+    }
+  },
+  {
+    "lastname": "BACHA",
+    "firstname": "Kaatia",
+    "address": {
+      "numStreet": 7,
+      "streetName": "Avenue de la fin",
+      "postalCode": "69006",
+      "city": "Lyon"
+    }
+  },
+  {
+    "lastname": "BACHA",
+    "firstname": "Katiya",
+    "address": {
+      "numStreet": 3,
+      "streetName": "Boulevard la raison",
+      "postalCode": "13008",
+      "city": "Marseille"
+    }
+  }
+]
