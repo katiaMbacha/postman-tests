@@ -1,0 +1,191 @@
+{
+	"info": {
+		"_postman_id": "246a2dd0-9193-402e-b791-afef7ed168b9",
+		"name": "Exo1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48094307",
+		"_collection_link": "https://katia-m-bacha-1067447.postman.co/workspace/katia-bacha's-Workspace~33163659-5f76-402e-8e85-a7e314928bc3/collection/48094307-246a2dd0-9193-402e-b791-afef7ed168b9?action=share&source=collection_link&creator=48094307"
+	},
+	"item": [
+		{
+			"name": "AffichageClients",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://6399e35616b0fdad774cf364.mockapi.io/testapi/api/v1/clients",
+					"protocol": "https",
+					"host": [
+						"6399e35616b0fdad774cf364",
+						"mockapi",
+						"io"
+					],
+					"path": [
+						"testapi",
+						"api",
+						"v1",
+						"clients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AjoutClients",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"lastname\", pm.variables.replaceIn(\"{{$randomLastName}}\"));",
+							"pm.collectionVariables.set(\"firstname\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));",
+							"pm.collectionVariables.set(\"streetName\", pm.variables.replaceIn(\"{{$randomStreetName}}\"));",
+							"pm.collectionVariables.set(\"city\", pm.variables.replaceIn(\"{{$randomCity}}\"));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"POST renvoie code statuts 201\", () => pm.response.to.have.status(201));",
+							"const created = pm.response.json();",
+							"pm.test(\"Contient un id\", () => pm.expect(created).to.have.property(\"id\"));",
+							"",
+							"pm.test(\"firstname OK\", () => pm.expect(created.firstname).to.eql(pm.variables.get(\"firstname\")));",
+							"pm.test(\"lastname OK\",  () => pm.expect(created.lastname ).to.eql(pm.variables.get(\"lastname\")));",
+							"pm.test(\"city OK\",      () => pm.expect(created.address.city).to.eql(pm.variables.get(\"city\")));",
+							"pm.test(\"street OK\",    () => pm.expect(created.address.streetName).to.eql(pm.variables.get(\"streetName\")));",
+							"",
+							"pm.collectionVariables.set(\"id\", created.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"lastname\": \"{{lastname}}\",\n  \"firstname\": \"{{firstname}}\",\n  \"address\": {\n    \"numStreet\": 15,\n    \"streetName\": \"{{streetName}}\",\n    \"postalCode\": \"75001\",\n    \"city\": \"{{city}}\"\n  }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://6399e35616b0fdad774cf364.mockapi.io/testapi/api/v1/clients",
+					"protocol": "https",
+					"host": [
+						"6399e35616b0fdad774cf364",
+						"mockapi",
+						"io"
+					],
+					"path": [
+						"testapi",
+						"api",
+						"v1",
+						"clients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SelectionById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"✅ Code retour = 200 attendu\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const item = pm.response.json();",
+							"const expectedId = pm.collectionVariables.get(\"id\"); ",
+							"",
+							"pm.test(`✅ Vérification de l'ID : attendu ${expectedId}, reçu ${item.id}`, function () {",
+							"  pm.expect(item.id).to.eql(expectedId, \"❌ L'ID ne correspond pas !\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://6399e35616b0fdad774cf364.mockapi.io/testapi/api/v1/clients/{{id}}",
+					"protocol": "https",
+					"host": [
+						"6399e35616b0fdad774cf364",
+						"mockapi",
+						"io"
+					],
+					"path": [
+						"testapi",
+						"api",
+						"v1",
+						"clients",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "lastname",
+			"value": ""
+		},
+		{
+			"key": "firstname",
+			"value": ""
+		},
+		{
+			"key": "streetName",
+			"value": ""
+		},
+		{
+			"key": "city",
+			"value": ""
+		},
+		{
+			"key": "id",
+			"value": ""
+		}
+	]
+}

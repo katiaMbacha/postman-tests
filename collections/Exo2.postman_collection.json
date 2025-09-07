@@ -1,0 +1,118 @@
+{
+	"info": {
+		"_postman_id": "b855b63c-9517-437e-9128-3c6a340e7641",
+		"name": "Exo2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48094307",
+		"_collection_link": "https://katia-m-bacha-1067447.postman.co/workspace/katia-bacha's-Workspace~33163659-5f76-402e-8e85-a7e314928bc3/collection/48094307-b855b63c-9517-437e-9128-3c6a340e7641?action=share&source=collection_link&creator=48094307"
+	},
+	"item": [
+		{
+			"name": "AddNewClients",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const ln = pm.iterationData.get(\"lastname\"); ",
+							"const fn = pm.iterationData.get(\"firstname\");",
+							"const addr = pm.iterationData.get(\"address\");",
+							"",
+							"",
+							"pm.collectionVariables.set(\"nom\", ln);",
+							"pm.collectionVariables.set(\"prenom\", fn);",
+							"pm.collectionVariables.set(\"DataAddress\", JSON.stringify(addr)); ",
+							"",
+							"",
+							"console.log(\"nom:\", ln);",
+							"console.log(\"prenom:\", fn);",
+							"console.log(\"DataAddress:\", addr);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"POST -> code retour 201/200\", () => {",
+							"  pm.expect([200,201]).to.include(pm.response.code);",
+							"});",
+							"",
+							"const created = pm.response.json();",
+							"",
+							"",
+							"pm.test(\"Retour contient un id\", () => {",
+							"  pm.expect(created).to.have.property(\"id\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"lastname OK\", () => {",
+							"  pm.expect(created.lastname).to.eql(pm.iterationData.get(\"lastname\"));",
+							"});",
+							"pm.test(\"firstname OK\", () => {",
+							"  pm.expect(created.firstname).to.eql(pm.iterationData.get(\"firstname\"));",
+							"});",
+							"",
+							"const addr = pm.iterationData.get(\"address\");",
+							"pm.test(\"city OK\", () => {",
+							"  pm.expect(created.address.city).to.eql(addr.city);",
+							"});",
+							"pm.test(\"streetName OK\", () => {",
+							"  pm.expect(created.address.streetName).to.eql(addr.streetName);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"lastname\": \"{{nom}}\",\n  \"firstname\": \"{{prenom}}\",\n  \"address\": {{DataAddress}} \n}\n\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://6399e35616b0fdad774cf364.mockapi.io/testapi/api/v1/clients",
+					"protocol": "https",
+					"host": [
+						"6399e35616b0fdad774cf364",
+						"mockapi",
+						"io"
+					],
+					"path": [
+						"testapi",
+						"api",
+						"v1",
+						"clients"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "nom",
+			"value": ""
+		},
+		{
+			"key": "prenom",
+			"value": ""
+		},
+		{
+			"key": "DataAddress",
+			"value": ""
+		}
+	]
+}
