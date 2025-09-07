@@ -65,15 +65,26 @@ pipeline {
     always {
       echo '📊 Publication des rapports...'
       archiveArtifacts artifacts: 'newman/**', fingerprint: true
-
+  
+      // Rapport Exo1
       publishHTML(target: [
         reportDir: 'newman',
-        reportFiles: 'Exo1.html,Exo2.html',
-        reportName: 'Newman HTML Reports',
+        reportFiles: 'Exo1.html',
+        reportName: '🟢 Rapport Exo1',
         keepAll: true,
         alwaysLinkToLastBuild: true
       ])
-
+  
+      // Rapport Exo2
+      publishHTML(target: [
+        reportDir: 'newman',
+        reportFiles: 'Exo2.html',
+        reportName: '🔵 Rapport Exo2',
+        keepAll: true,
+        alwaysLinkToLastBuild: true
+      ])
+  
+      // Résultats JUnit (tableau intégré Jenkins)
       junit testResults: 'newman/*.xml', allowEmptyResults: true
     }
     success {
