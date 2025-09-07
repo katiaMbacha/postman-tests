@@ -1,14 +1,18 @@
 pipeline {
   agent any
 
-  options {
-    timestamps()
+  tools {
+    nodejs 'Node24'   // 👈 correspond exactement au nom configuré dans Jenkins
   }
 
   environment {
     REPORT_DIR = 'newman'
     EXO1 = 'collections/Exo1.postman_collection.json'
     EXO2 = 'collections/Exo2.postman_collection.json'
+  }
+
+  options {
+    timestamps()
   }
 
   stages {
@@ -19,21 +23,12 @@ pipeline {
       }
     }
 
-    stage('Check Node & npm') {
+    stage('Check Node & Newman') {
       steps {
         sh '''
-          set -e
+          echo "📦 Vérification des versions installées"
           node -v
           npm -v
-        '''
-      }
-    }
-
-    stage('Install Newman & reporter') {
-      steps {
-        sh '''
-          set -e
-          npm i -g newman newman-reporter-htmlextra
           newman -v
         '''
       }
@@ -42,7 +37,7 @@ pipeline {
     stage('Run Exo1') {
       steps {
         sh '''
-          set -e
+          echo "🚀 Exécution de Exo1"
           newman run "$EXO1" -r cli,htmlextra,junit \
             --reporter-htmlextra-export "$REPORT_DIR/Exo1.html" \
             --reporter-junit-export     "$REPORT_DIR/Exo1.xml"
@@ -53,7 +48,7 @@ pipeline {
     stage('Run Exo2') {
       steps {
         sh '''
-          set -e
+          echo "🚀 Exécution de Exo2"
           newman run "$EXO2" -r cli,htmlextra,junit \
             --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \
             --reporter-junit-export     "$REPORT_DIR/Exo2.xml"
@@ -80,10 +75,10 @@ pipeline {
 
   post {
     always {
-      echo 'Build terminé. Rapports archivés et publiés.'
+      echo '✅ Build terminé.'
     }
     unsuccessful {
-      echo 'Des tests ont échoué — consulte les rapports HTML/JUnit.'
+      echo '❌ Des tests ont échoué — consulte les rapports HTML/JUnit.'
     }
   }
 }
