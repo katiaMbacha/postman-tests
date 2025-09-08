@@ -110,5 +110,6 @@ pipeline {
     success  { echo '✅ Tous les tests sont passés avec succès.' }
     unstable { echo '⚠️ Certains tests ont échoué — consulte les rapports.' }
     failure  { echo '❌ Échec critique du pipeline.' }
+    echo "# test webhook"
   }
 }
