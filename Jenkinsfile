@@ -9,7 +9,7 @@ pipeline {
   }
 
   tools {
-    nodejs 'Node24' // doit exister dans Manage Jenkins → Tools
+    nodejs 'Node24' 
   }
 
   environment {
@@ -94,7 +94,7 @@ pipeline {
 
       script {
         emailext(
-          to: 'katia.m.bacha@gmail.com', // adapte l’adresse
+          to: 'katia.m.bacha@gmail.com',
           subject: "Jenkins · ${env.JOB_NAME} #${env.BUILD_NUMBER} · ${currentBuild.currentResult}",
           body: """
             <p>Résultat: <b>${currentBuild.currentResult}</b></p>
