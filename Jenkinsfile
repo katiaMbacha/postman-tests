@@ -86,9 +86,9 @@ pipeline {
           from: 'katia.m.bacha@gmail.com',
           subject: "Jenkins · ${env.JOB_NAME} #${env.BUILD_NUMBER} · ${status}",
           mimeType: 'text/html',
-          // 👉 Pièces jointes: les rapports HTML htmlextra
+          // Pièces jointes: les rapports HTML htmlextra
           attachmentsPattern: 'newman/Exo1.html,newman/Exo2.html',
-          // 👉 Corps de mail avec liens directs vers les rapports publiés
+          // Corps de mail avec liens directs vers les rapports publiés
           body: """
           <h2 style="margin:0 0 10px">Résultat : <span style="color:${status=='SUCCESS'?'#2e7d32':'#c62828'}">${status}</span></h2>
           <p>Job : <b>${env.JOB_NAME}</b> (#${env.BUILD_NUMBER})</p>
