@@ -5,12 +5,11 @@ pipeline {
     nodejs 'Node24'   
   }
 
-  // 👉 Paramètres visibles dans "Build with Parameters"
   parameters {
     choice(
       name: 'ENV',
       choices: ['dev', 'qa', 'test'],
-      description: 'Choisissez l\'environnement Postman'
+      description: 'Choisissez l\'environnement Postman d'exécution'
     )
     string(
       name: 'DELAY_MS',
