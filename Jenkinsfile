@@ -5,6 +5,20 @@ pipeline {
     nodejs 'Node24'   
   }
 
+  // 👉 Paramètres visibles dans "Build with Parameters"
+  parameters {
+    choice(
+      name: 'ENV',
+      choices: ['dev', 'qa', 'test'],
+      description: 'Choisissez l\'environnement Postman'
+    )
+    string(
+      name: 'DELAY_MS',
+      defaultValue: '300',
+      description: 'Délai entre requêtes (ms) pour éviter la saturation'
+    )
+  }
+
   environment {
     REPORT_DIR = 'newman'
     EXO1 = 'collections/Exo1.postman_collection.json'
@@ -37,12 +51,30 @@ pipeline {
     stage('Run Exo1') {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-          sh '''
-            echo "🚀 Exécution de Exo1"
-            newman run "$EXO1" -r cli,htmlextra,junit \
-              --reporter-htmlextra-export "$REPORT_DIR/Exo1.html" \
-              --reporter-junit-export     "$REPORT_DIR/Exo1.xml"
-          '''
+          script {
+            // On cherche un fichier d'environnement correspondant (ex: environments/dev.postman_environment.json)
+            def envFile = "environments/${params.ENV}.postman_environment.json"
+            def envArgs = fileExists(envFile) ? "-e ${envFile}" : ""
+
+            // Fallback : si pas de fichier, on construit une baseUrl différente selon ENV
+            if (!fileExists(envFile)) {
+              def baseUrls = [
+                dev : 'https://dev.example.com',
+                qa  : 'https://qa.example.com',
+                test: 'https://test.example.com'
+              ]
+              envArgs = "--env-var baseUrl=${baseUrls[params.ENV]}"
+            }
+
+            sh """
+              echo "🚀 Exécution de Exo1 sur ENV=${params.ENV}"
+              newman run "$EXO1" ${envArgs} \
+                --delay-request ${params.DELAY_MS} \
+                -r cli,htmlextra,junit \
+                --reporter-htmlextra-export "$REPORT_DIR/Exo1.html" \
+                --reporter-junit-export     "$REPORT_DIR/Exo1.xml"
+            """
+          }
         }
       }
     }
@@ -50,16 +82,32 @@ pipeline {
     stage('Run Exo2') {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-          sh '''
-            echo "🚀 Exécution de Exo2"
-            newman run "$EXO2" -d data/myClients.json -r cli,htmlextra,junit \
-              --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \
-              --reporter-junit-export     "$REPORT_DIR/Exo2.xml"
-          '''
+          script {
+            def envFile = "environments/${params.ENV}.postman_environment.json"
+            def envArgs = fileExists(envFile) ? "-e ${envFile}" : ""
+
+            if (!fileExists(envFile)) {
+              def baseUrls = [
+                dev : 'https://dev.example.com',
+                qa  : 'https://qa.example.com',
+                test: 'https://test.example.com'
+              ]
+              envArgs = "--env-var baseUrl=${baseUrls[params.ENV]}"
+            }
+
+            sh """
+              echo "🚀 Exécution de Exo2 sur ENV=${params.ENV}"
+              newman run "$EXO2" ${envArgs} \
+                -d data/myClients.json \
+                --delay-request ${params.DELAY_MS} \
+                -r cli,htmlextra,junit \
+                --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \
+                --reporter-junit-export     "$REPORT_DIR/Exo2.xml"
+            """
+          }
         }
       }
     }
-
   }
 
   post {
@@ -67,7 +115,6 @@ pipeline {
       echo '📊 Publication des rapports...'
       archiveArtifacts artifacts: 'newman/**', fingerprint: true
   
-      // Rapport Exo1
       publishHTML(target: [
         reportDir: 'newman',
         reportFiles: 'Exo1.html',
@@ -75,8 +122,6 @@ pipeline {
         keepAll: true,
         alwaysLinkToLastBuild: true
       ])
-  
-      // Rapport Exo2
       publishHTML(target: [
         reportDir: 'newman',
         reportFiles: 'Exo2.html',
@@ -84,8 +129,7 @@ pipeline {
         keepAll: true,
         alwaysLinkToLastBuild: true
       ])
-  
-      // Résultats JUnit (tableau intégré Jenkins)
+
       junit testResults: 'newman/*.xml', allowEmptyResults: true
     }
     success {
@@ -99,4 +143,3 @@ pipeline {
     }
   }
 }
-
