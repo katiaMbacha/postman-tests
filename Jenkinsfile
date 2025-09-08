@@ -1,8 +1,15 @@
 pipeline {
   agent any
 
+  triggers {
+    githubPush()
+    // Tous les jours à 12:00, heure de Paris
+    cron('''TZ=Europe/Paris
+0 12 * * *''')
+  }
+
   tools {
-    nodejs 'Node24'
+    nodejs 'Node24' // doit exister dans Manage Jenkins → Tools
   }
 
   environment {
@@ -13,6 +20,7 @@ pipeline {
 
   options {
     timestamps()
+    ansiColor('xterm')
   }
 
   stages {
@@ -26,10 +34,10 @@ pipeline {
     stage('Check Node & Newman') {
       steps {
         sh '''
-          echo "📦 Vérification des versions installées"
+          echo "📦 Versions installées"
           node -v
           npm -v
-          newman -v
+          npx newman -v
         '''
       }
     }
@@ -38,11 +46,10 @@ pipeline {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
           sh """
-            echo "🚀 Exécution de Exo1 (ENV=\${ENV})"
-            newman run "$EXO1" \\
-              --env-var runEnv=\${ENV} \\
-              -r cli,htmlextra,junit \\
-              --reporter-htmlextra-export "$REPORT_DIR/Exo1.html" \\
+            echo "🚀 Exécution de Exo1"
+            npx newman run "$EXO1" \
+              -r cli,htmlextra,junit \
+              --reporter-htmlextra-export "$REPORT_DIR/Exo1.html" \
               --reporter-junit-export     "$REPORT_DIR/Exo1.xml"
           """
         }
@@ -53,11 +60,10 @@ pipeline {
       steps {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
           sh """
-            echo "🚀 Exécution de Exo2 (ENV=\${ENV})"
-            newman run "$EXO2" -d data/myClients.json \\
-              --env-var runEnv=\${ENV} \\
-              -r cli,htmlextra,junit \\
-              --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \\
+            echo "🚀 Exécution de Exo2"
+            npx newman run "$EXO2" -d data/myClients.json \
+              -r cli,htmlextra,junit \
+              --reporter-htmlextra-export "$REPORT_DIR/Exo2.html" \
               --reporter-junit-export     "$REPORT_DIR/Exo2.xml"
           """
         }
@@ -70,7 +76,6 @@ pipeline {
       echo '📊 Publication des rapports...'
       archiveArtifacts artifacts: 'newman/**', fingerprint: true
 
-      // Rapport Exo1
       publishHTML(target: [
         reportDir: 'newman',
         reportFiles: 'Exo1.html',
@@ -78,8 +83,6 @@ pipeline {
         keepAll: true,
         alwaysLinkToLastBuild: true
       ])
-
-      // Rapport Exo2
       publishHTML(target: [
         reportDir: 'newman',
         reportFiles: 'Exo2.html',
@@ -88,8 +91,22 @@ pipeline {
         alwaysLinkToLastBuild: true
       ])
 
-      // Résultats JUnit (tableau intégré Jenkins)
       junit testResults: 'newman/*.xml', allowEmptyResults: true
+
+      script {
+        emailext(
+          to: 'katia.m.bacha@gmail.com', // adapte l’adresse
+          subject: "Jenkins · ${env.JOB_NAME} #${env.BUILD_NUMBER} · ${currentBuild.currentResult}",
+          body: """
+            <p>Résultat: <b>${currentBuild.currentResult}</b></p>
+            <p>Job: ${env.JOB_NAME} (#${env.BUILD_NUMBER})</p>
+            <p>Détails: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+          """,
+          mimeType: 'text/html',
+          attachLog: true,
+          compressLog: true
+        )
+      }
     }
     success  { echo '✅ Tous les tests sont passés avec succès.' }
     unstable { echo '⚠️ Certains tests ont échoué — consulte les rapports.' }
